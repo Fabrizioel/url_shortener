@@ -19,4 +19,4 @@ This app generates shortened URLs, stores them in a database for a period, track
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/Fabrizioel/.git
+   https://github.com/Fabrizioel/url_shortener.git
