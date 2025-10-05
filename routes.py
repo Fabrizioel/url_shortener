@@ -14,6 +14,11 @@ def get_expires_at_date():
     expires_at_date = now + timedelta(days=30)
     return expires_at_date
 
+def get_days_left_for_expiration(expires_at_date):
+    now = datetime.now()
+    days_left = (expires_at_date - now).days
+    return days_left
+
 @url.route("/shorten", methods=["POST"])
 def shorten_url():
     data = request.get_json()
@@ -41,7 +46,7 @@ def shorten_url():
     return jsonify({
         "original_url": original_url,
         "short_url": f"http://localhost:5000/{short_code}",
-        "expires_at": expires_at_date
+        "expires_at": expires_at_date.isoformat()
     })
 
 @url.route("/<string:short_code>")
@@ -52,3 +57,17 @@ def redirect_url(short_code):
     
     collection.update_one({ "short_code": short_code }, {"$inc": {"clicks": 1}})
     return redirect(url["original_url"])
+
+@url.route("/stats/<string:short_code>")
+def stats(short_code):
+    url = collection.find_one({ "short_code": short_code })
+    if not url:
+        return jsonify({ "error": "URL not found." }), 404
+    
+    days_left_to_expire = get_days_left_for_expiration(url["expires_at"])
+    
+    return jsonify({
+        "original_url": url["original_url"],
+        "clicks": url["clicks"],
+        "day_to_expire": days_left_to_expire
+    })
